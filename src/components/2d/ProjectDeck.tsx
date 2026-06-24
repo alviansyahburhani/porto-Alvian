@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 interface Project {
   id: number;
@@ -11,32 +12,36 @@ interface Project {
   description: string;
   tech: string[];
   status: string;
+  image?: string;
 }
 
 const INITIAL_PROJECTS: Project[] = [
   {
     id: 1,
-    title: "Sisdikop (Sistem Digital Koperasi)",
-    category: "FRONTEND / SAAS SYSTEM",
-    description: "Platform SaaS Multi-Tenant untuk digitalisasi manajemen, administrasi, dan pembukuan unit koperasi secara real-time dan terenkripsi.",
-    tech: ["Next.js", "TypeScript", "Tailwind CSS", "Go-Fiber", "PostgreSQL"],
-    status: "ACTIVE_DESTRUCTION"
+    title: "Website Manajemen Toko & POS",
+    category: "FULLSTACK WEB APP",
+    description: "Aplikasi web Point of Sale (POS) khusus untuk toko Bangunan guna mengoptimalkan efisiensi pemrosesan transaksi Invoice dan manajemen inventaris.",
+    tech: ["Next.js", "Tailwind CSS", "TypeScript"],
+    status: "COMPLETED",
+    image: "/pos.webp"
   },
   {
     id: 2,
-    title: "Clinical Risk Classifier",
-    category: "DATA SCIENCE / MACHINE LEARNING",
-    description: "Implementasi Ensemble Learning (Random Forest & XGBoost) untuk mendeteksi, mendiagnosis, dan mengklasifikasikan tingkat risiko klinis pasien berdasarkan rekam medis.",
-    tech: ["Python", "FastAPI", "Scikit-Learn", "XGBoost", "React"],
-    status: "STABLE_DEPLOY"
+    title: "Sistem Web Scraping Otomatis",
+    category: "AUTOMATION / DATA EXTRACTION",
+    description: "Sistem web scraping otomatis guna meningkatkan efisiensi bisnis dalam mengumpulkan dan memproses data dari berbagai sumber.",
+    tech: ["Java", "HTML", "CSS"],
+    status: "COMPLETED",
+    image: "/scraping.webp"
   },
   {
     id: 3,
-    title: "Cyber-Grid UI System",
-    category: "FRONTEND ARCHITECTURE",
-    description: "Koleksi komponen UI WebGL & React modular bertema cyberpunk dengan performa tinggi yang dioptimalkan untuk perangkat berspesifikasi rendah.",
-    tech: ["React Three Fiber", "Three.js", "GSAP", "Tailwind CSS"],
-    status: "IN_DEV_STAGE"
+    title: "Sisdikop (Sistem Digital Koperasi)",
+    category: "FRONTEND / SAAS SYSTEM",
+    description: "Platform SaaS Multi-Tenant untuk digitalisasi manajemen, administrasi, dan pembukuan unit koperasi secara real-time dan terenkripsi.",
+    tech: ["Next.js", "TypeScript", "Tailwind CSS"],
+    status: "ACTIVE",
+    image: "/pos.webp" // Placeholder, can be changed later
   }
 ];
 
@@ -91,7 +96,7 @@ const MlVisual = () => (
         />
       </svg>
       <div className="absolute top-2 right-2 text-[8px] text-white/30 text-right leading-relaxed">
-        SYS_VAL: 84.12<br/>
+        SYS_VAL: 84.12<br />
         RISK: ACCURATE
       </div>
     </div>
@@ -122,13 +127,12 @@ const WebGlVisual = () => (
             ease: "easeInOut",
             delay: idx * 0.1
           }}
-          className={`h-2.5 w-2.5 rounded-sm ${
-            idx % 3 === 0 
-              ? "bg-electric-cyan" 
-              : idx % 2 === 0 
-              ? "bg-neon-purple" 
+          className={`h-2.5 w-2.5 rounded-sm ${idx % 3 === 0
+            ? "bg-electric-cyan"
+            : idx % 2 === 0
+              ? "bg-neon-purple"
               : "bg-white/10"
-          }`}
+            }`}
         />
       ))}
     </div>
@@ -170,11 +174,11 @@ export default function ProjectDeck() {
       <div className="w-full max-w-4xl mx-auto flex flex-col pb-[10vh]">
         {INITIAL_PROJECTS.map((project, index) => {
           // CSS sticky offsets: each card sticks at 80px interval to match the height of Row 1 (Top Padding + Number + Title)
-          const stickyTopClass = index === 0 
-            ? "md:top-[100px]" 
-            : index === 1 
-            ? "md:top-[180px]" 
-            : "md:top-[260px]";
+          const stickyTopClass = index === 0
+            ? "md:top-[100px]"
+            : index === 1
+              ? "md:top-[180px]"
+              : "md:top-[260px]";
 
           const zIndex = (index + 1) * 10;
           const isLast = index === INITIAL_PROJECTS.length - 1;
@@ -182,7 +186,7 @@ export default function ProjectDeck() {
           return (
             <div
               key={project.id}
-              className={`w-full md:sticky ${stickyTopClass} ${!isLast ? "mb-[30vh]" : ""} rounded-2xl border border-white/10 glassmorphism cyber-border-purple pt-6 pb-8 px-6 md:px-8 flex flex-col justify-between overflow-hidden shadow-[0_-15px_40px_rgba(0,0,0,0.6)]`}
+              className={`w-full md:sticky ${stickyTopClass} ${!isLast ? "mb-[30vh]" : ""} rounded-2xl border border-white/10 glassmorphism cyber-border-purple pt-6 pb-8 px-6 md:px-8 flex flex-col justify-between shadow-[0_-15px_40px_rgba(0,0,0,0.6)]`}
               style={{ zIndex }}
             >
               {/* Corner Tag/Decoration */}
@@ -201,25 +205,12 @@ export default function ProjectDeck() {
                 </h3>
               </div>
 
-              {/* Row 2: Category, Status, and Codebase Link. 
+              {/* Row 2: Category. 
                   This and all elements below will be covered by the next sticky card. */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-t border-b border-white/5 py-4 my-4 relative z-10">
+              <div className="flex flex-col justify-start border-t border-b border-white/5 py-4 my-4 relative z-10">
                 <span className="text-[9px] font-mono text-electric-cyan/70 tracking-widest uppercase">
                   // {project.category}
                 </span>
-                <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-start">
-                  <span className="flex items-center space-x-1 text-[8px] font-mono text-white/50 bg-white/5 border border-white/10 px-2 py-0.5 rounded">
-                    <ShieldCheck className="w-3 h-3 text-neon-purple" />
-                    <span>{project.status}</span>
-                  </span>
-                  <a
-                    href="#"
-                    className="flex items-center space-x-1 text-[9px] font-mono text-electric-cyan/80 bg-electric-cyan/5 hover:bg-electric-cyan/15 border border-electric-cyan/20 px-3 py-1 rounded-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  >
-                    <span>LIVE PROJECT</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
               </div>
 
               {/* Card Body & Visuals Grid */}
@@ -239,9 +230,39 @@ export default function ProjectDeck() {
                   </div>
                 </div>
 
-                {/* Cyberpunk Live Visual Panel */}
-                <div className="md:col-span-5 min-h-[160px] md:min-h-auto">
-                  {visuals[index]}
+                {/* Cyberpunk Live Visual Panel / Image Panel */}
+                <div className="md:col-span-5 min-h-[220px] md:min-h-auto relative perspective-1000 flex flex-col justify-end">
+                  {project.image ? (
+                    <div className="w-full h-full relative md:absolute md:w-[140%] md:h-[250%] md:bottom-7 md:-right-19 transform hover:scale-105 md:rotate-y-[-5deg] md:rotate-x-[5deg] hover:rotate-0 transition-all duration-500 z-20 group">
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        priority={index === 0}
+                        className="object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)] opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full rounded-lg overflow-hidden border border-white/10 relative">
+                      {visuals[index]}
+                    </div>
+                  )}
+
+                  {/* Status & Live Link (Moved to bottom right) */}
+                  <div className="flex items-center justify-start md:justify-end gap-3 pt-6 mt-auto relative z-30">
+                    <span className="flex items-center space-x-1 text-[8px] font-mono text-white/50 bg-white/5 border border-white/10 px-2 py-0.5 rounded">
+                      <ShieldCheck className="w-3 h-3 text-neon-purple" />
+                      <span>{project.status}</span>
+                    </span>
+                    <a
+                      href="#"
+                      className="flex items-center space-x-1 text-[9px] font-mono text-electric-cyan/80 bg-electric-cyan/5 hover:bg-electric-cyan/15 border border-electric-cyan/20 px-3 py-1 rounded-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    >
+                      <span>LIVE PROJECT</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

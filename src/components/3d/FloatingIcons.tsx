@@ -4,17 +4,23 @@ import { useRef, useEffect, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
+import { MotionValue } from "framer-motion";
+
 interface FloatingIconsProps {
-  category: "frontend" | "backend_ml" | "tools";
+  category: "frontend" | "machine_learning" | "tools";
+  progress?: MotionValue<number>;
+  hoveredIndex?: number | null;
+  start?: number;
+  step?: number;
 }
 
 const SKILLS_BY_CATEGORY = {
-  frontend: ["react", "nextjs", "vue", "typescript", "javascript", "tailwind"],
-  backend_ml: ["php", "codeigniter", "python", "colab", "scikit"],
+  frontend: ["html", "css", "react", "nextjs", "vue", "typescript", "javascript", "tailwind", "php", "codeigniter"],
+  machine_learning: ["python", "colab", "scikit"],
   tools: ["figma", "canva", "vscode", "antigravity"]
 };
 
-export default function FloatingIcons({ category }: FloatingIconsProps) {
+export default function FloatingIcons({ category, progress, hoveredIndex, start, step }: FloatingIconsProps) {
   const groupRef = useRef<THREE.Group>(null);
   const iconRefs = useRef<Array<THREE.Group | null>>([]);
   const { size, viewport } = useThree();
@@ -29,58 +35,146 @@ export default function FloatingIcons({ category }: FloatingIconsProps) {
     const ctx = canvas.getContext("2d");
 
     if (ctx) {
-      // Circle background
-      ctx.fillStyle = "#0a1b3a";
+      // Circle background (matching cylinder color for seamless blending)
+      ctx.fillStyle = "#0b1a30";
       ctx.beginPath();
       ctx.arc(128, 128, 120, 0, Math.PI * 2);
       ctx.fill();
 
-      // Outer Glowing Ring
-      const purpleIcons = ["python", "php", "figma", "codeigniter", "colab", "scikit"];
-      ctx.strokeStyle = purpleIcons.includes(type) ? "#8a2be2" : "#00f0ff";
+      // Outer Glowing Ring (Dynamic theme color based on row category)
+      const ringColor = 
+        category === "frontend" ? "#00f0ff" : 
+        category === "machine_learning" ? "#10b981" : 
+        "#ffffff";
+
+      ctx.strokeStyle = ringColor;
+      ctx.shadowColor = ringColor;
+      ctx.shadowBlur = 12;
       ctx.lineWidth = 8;
       ctx.stroke();
+      ctx.shadowBlur = 0; // Reset shadow for other drawings
 
-      if (type === "nextjs") {
+      if (type === "html") {
+        // SVG size is 128x128. Scale to fit 150x150 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 75);
+        ctx.scale(150 / 128, 150 / 128);
+
+        // Path 1 (Shield base dark orange)
+        ctx.fillStyle = "#E44D26";
+        ctx.fill(new Path2D("M19.037 113.876L9.032 1.661h109.936l-10.016 112.198-45.019 12.48z"));
+
+        // Path 2 (Shield right light orange)
+        ctx.fillStyle = "#F16529";
+        ctx.fill(new Path2D("M64 116.8l36.378-10.086 8.559-95.878H64z"));
+
+        // Path 3 (Light gray left elements of "5")
+        ctx.fillStyle = "#EBEBEB";
+        ctx.fill(new Path2D("M64 52.455H45.788L44.53 38.361H64V24.599H29.489l.33 3.692 3.382 37.927H64zm0 35.743l-.061.017-15.327-4.14-.979-10.975H33.816l1.928 21.609 28.193 7.826.063-.017z"));
+
+        // Path 4 (White right elements of "5")
         ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(128, 128, 90, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fill(new Path2D("M63.952 52.455v13.763h16.947l-1.597 17.849-15.35 4.143v14.319l28.215-7.82.207-2.325 3.234-36.233.335-3.696h-3.708zm0-27.856v13.762h33.244l.276-3.092.628-6.978.329-3.692z"));
+
+        ctx.restore();
+      } else if (type === "css") {
+        // SVG size is 128x128. Scale to fit 150x150 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 75);
+        ctx.scale(150 / 128, 150 / 128);
+
+        // Path 1 (Shield base dark blue)
+        ctx.fillStyle = "#1572B6";
+        ctx.fill(new Path2D("M18.814 114.123L8.76 1.352h110.48l-10.064 112.754-45.243 12.543-45.119-12.526z"));
+
+        // Path 2 (Shield right light blue)
+        ctx.fillStyle = "#33A9DC";
+        ctx.fill(new Path2D("M64.001 117.062l36.559-10.136 8.601-96.354h-45.16v106.49z"));
+
+        // Path 3 (White top-right "3" bar)
+        ctx.fillStyle = "#ffffff";
+        ctx.fill(new Path2D("M64.001 51.429h18.302l1.264-14.163H64.001V23.435h34.682l-.332 3.711-3.4 38.114h-30.95V51.429z"));
+
+        // Path 4 (Light gray bottom-left "3" bar)
+        ctx.fillStyle = "#EBEBEB";
+        ctx.fill(new Path2D("M64.083 87.349l-.061.018-15.403-4.159-.985-11.031H33.752l1.937 21.717 28.331 7.863.063-.018v-14.39z"));
+
+        // Path 5 (White bottom-right "3" bar)
+        ctx.fillStyle = "#ffffff";
+        ctx.fill(new Path2D("M81.127 64.675l-1.666 18.522-15.426 4.164v14.39l28.354-7.858.208-2.337 2.406-26.881H81.127z"));
+
+        // Path 6 (Light gray top-left "3" bar)
+        ctx.fillStyle = "#EBEBEB";
+        ctx.fill(new Path2D("M64.048 23.435v13.831H30.64l-.277-3.108-.63-7.012-.331-3.711h34.646zm-.047 27.996v13.831H48.792l-.277-3.108-.631-7.012-.33-3.711h16.447z"));
+
+        ctx.restore();
+      } else if (type === "nextjs") {
+        // SVG size is 180x180. Scale to fit 140x140 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 70, 128 - 70);
+        ctx.scale(140 / 180, 140 / 180);
+
+        // Circle mask/background
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.moveTo(75, 180); ctx.lineTo(75, 76); ctx.lineTo(95, 76);
-        ctx.lineTo(168, 168); ctx.lineTo(168, 76); ctx.lineTo(185, 76);
-        ctx.lineTo(185, 180); ctx.lineTo(165, 180); ctx.lineTo(92, 88);
-        ctx.lineTo(92, 180); ctx.closePath(); ctx.fill();
+        ctx.arc(90, 90, 90, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Path with gradient
+        const g0 = ctx.createLinearGradient(109, 116.5, 144.5, 160.5);
+        g0.addColorStop(0, "#ffffff");
+        g0.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = g0;
+        ctx.fill(new Path2D("M149.508 157.52L69.142 54H54V125.97H66.1136V69.3836L139.999 164.845C143.333 162.614 146.509 160.165 149.508 157.52Z"));
+
+        // Rect with gradient
+        const g1 = ctx.createLinearGradient(121, 54, 120.799, 106.875);
+        g1.addColorStop(0, "#ffffff");
+        g1.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = g1;
+        ctx.fillRect(115, 54, 12, 72);
+
+        ctx.restore();
       } else if (type === "react") {
-        ctx.strokeStyle = "#00f0ff";
-        ctx.lineWidth = 6;
-        ctx.beginPath(); ctx.ellipse(128, 128, 90, 30, 0, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(128, 128, 90, 30, Math.PI / 3, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(128, 128, 90, 30, (2 * Math.PI) / 3, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillStyle = "#00f0ff";
-        ctx.beginPath(); ctx.arc(128, 128, 15, 0, Math.PI * 2); ctx.fill();
+        // SVG size is 569x512. Scale to fit 150x135 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 67.5);
+        ctx.scale(150 / 569, 150 / 569);
+        ctx.fillStyle = "#58C4DC";
+        ctx.fill(new Path2D("M285.5,201 C255.400481,201 231,225.400481 231,255.5 C231,285.599519 255.400481,310 285.5,310 C315.599519,310 340,285.599519 340,255.5 C340,225.400481 315.599519,201 285.5,201"));
+        ctx.fill(new Path2D("M568.959856,255.99437 C568.959856,213.207656 529.337802,175.68144 466.251623,150.985214 C467.094645,145.423543 467.85738,139.922107 468.399323,134.521063 C474.621631,73.0415145 459.808523,28.6686204 426.709856,9.5541429 C389.677085,-11.8291748 337.36955,3.69129898 284.479928,46.0162134 C231.590306,3.69129898 179.282771,-11.8291748 142.25,9.5541429 C109.151333,28.6686204 94.3382249,73.0415145 100.560533,134.521063 C101.102476,139.922107 101.845139,145.443621 102.708233,151.02537 C97.4493791,153.033193 92.2908847,155.161486 87.3331099,157.39017 C31.0111824,182.708821 0,217.765415 0,255.99437 C0,298.781084 39.6220545,336.307301 102.708233,361.003527 C101.845139,366.565197 101.102476,372.066633 100.560533,377.467678 C94.3382249,438.947226 109.151333,483.32012 142.25,502.434597 C153.629683,508.887578 166.52439,512.186771 179.603923,511.991836 C210.956328,511.991836 247.567589,495.487529 284.479928,465.972527 C321.372196,495.487529 358.003528,511.991836 389.396077,511.991836 C402.475265,512.183856 415.36922,508.884856 426.75,502.434597 C459.848667,483.32012 474.661775,438.947226 468.439467,377.467678 C467.897524,372.066633 467.134789,366.565197 466.291767,361.003527 C529.377946,336.347457 569,298.761006 569,255.99437 M389.155214,27.1025182 C397.565154,26.899606 405.877839,28.9368502 413.241569,33.0055186 C436.223966,46.2772304 446.540955,82.2775015 441.522965,131.770345 C441.181741,135.143488 440.780302,138.556788 440.298575,141.990165 C414.066922,134.08804 387.205771,128.452154 360.010724,125.144528 C343.525021,103.224055 325.192524,82.7564475 305.214266,63.9661533 C336.586743,39.7116483 366.032313,27.1025182 389.135142,27.1025182 M378.356498,310.205598 C368.204912,327.830733 357.150626,344.919965 345.237759,361.405091 C325.045049,363.479997 304.758818,364.51205 284.459856,364.497299 C264.167589,364.51136 243.888075,363.479308 223.702025,361.405091 C211.820914,344.919381 200.80007,327.83006 190.683646,310.205598 C180.532593,292.629285 171.306974,274.534187 163.044553,255.99437 C171.306974,237.454554 180.532593,219.359455 190.683646,201.783142 C200.784121,184.229367 211.770999,167.201087 223.601665,150.764353 C243.824636,148.63809 264.145559,147.579168 284.479928,147.591877 C304.772146,147.579725 325.051559,148.611772 345.237759,150.68404 C357.109048,167.14607 368.136094,184.201112 378.27621,201.783142 C388.419418,219.363718 397.644825,237.458403 405.915303,255.99437 C397.644825,274.530337 388.419418,292.625022 378.27621,310.205598 M419.724813,290.127366 C426.09516,307.503536 431.324985,325.277083 435.380944,343.334682 C417.779633,348.823635 399.836793,353.149774 381.668372,356.285142 C388.573127,345.871232 395.263781,335.035679 401.740334,323.778483 C408.143291,312.655143 414.144807,301.431411 419.805101,290.207679 M246.363271,390.377981 C258.848032,391.140954 271.593728,391.582675 284.5,391.582675 C297.406272,391.582675 310.232256,391.140954 322.737089,390.377981 C310.880643,404.583418 298.10766,417.997563 284.5,430.534446 C270.921643,417.999548 258.18192,404.585125 246.363271,390.377981 Z M187.311556,356.244986 C169.137286,353.123646 151.187726,348.810918 133.578912,343.334682 C137.618549,325.305649 142.828222,307.559058 149.174827,290.207679 C154.754833,301.431411 160.736278,312.655143 167.239594,323.778483 C173.74291,334.901824 180.467017,345.864539 187.311556,356.285142 M149.174827,221.760984 C142.850954,204.473938 137.654787,186.794745 133.619056,168.834762 C151.18418,163.352378 169.085653,159.013101 187.211197,155.844146 C180.346585,166.224592 173.622478,176.986525 167.139234,188.210257 C160.65599,199.433989 154.734761,210.517173 149.074467,221.760984 M322.616657,121.590681 C310.131896,120.827708 297.3862,120.385987 284.379568,120.385987 C271.479987,120.385987 258.767744,120.787552 246.242839,121.590681 C258.061488,107.383537 270.801211,93.9691137 284.379568,81.4342157 C297.99241,93.9658277 310.765727,107.380324 322.616657,121.590681 Z M401.70019,188.210257 C395.196875,176.939676 388.472767,166.09743 381.527868,155.68352 C399.744224,158.819049 417.734224,163.151949 435.380944,168.654058 C431.331963,186.680673 426.122466,204.426664 419.785029,221.781062 C414.205023,210.55733 408.203506,199.333598 401.720262,188.230335 M127.517179,131.790423 C122.438973,82.3176579 132.816178,46.2973086 155.778503,33.0255968 C163.144699,28.9632474 171.455651,26.9264282 179.864858,27.1225964 C202.967687,27.1225964 232.413257,39.7317265 263.785734,63.9862316 C243.794133,82.7898734 225.448298,103.270812 208.949132,125.204763 C181.761691,128.528025 154.90355,134.14313 128.661281,141.990165 C128.199626,138.556788 127.778115,135.163566 127.456963,131.790423 M98.4529773,182.106474 C101.54406,180.767925 104.695358,179.429376 107.906872,178.090828 C114.220532,204.735668 122.781793,230.7969 133.498624,255.99437 C122.761529,281.241316 114.193296,307.357063 107.8868,334.058539 C56.7434387,313.076786 27.0971497,284.003505 27.0971497,255.99437 C27.0971497,229.450947 53.1907013,202.526037 98.4529773,182.106474 Z M155.778503,478.963143 C132.816178,465.691432 122.438973,429.671082 127.517179,380.198317 C127.838331,376.825174 128.259842,373.431953 128.721497,369.978497 C154.953686,377.878517 181.814655,383.514365 209.009348,386.824134 C225.500295,408.752719 243.832321,429.233234 263.805806,448.042665 C220.069,481.834331 180.105722,492.97775 155.838719,478.963143 M441.502893,380.198317 C446.520883,429.691161 436.203894,465.691432 413.221497,478.963143 C388.974566,493.017906 348.991216,481.834331 305.274481,448.042665 C325.241364,429.232737 343.566681,408.752215 360.050868,386.824134 C387.245915,383.516508 414.107066,377.880622 440.338719,369.978497 C440.820446,373.431953 441.221885,376.825174 441.563109,380.198317 M461.193488,334.018382 C454.869166,307.332523 446.294494,281.231049 435.561592,255.99437 C446.289797,230.744081 454.857778,204.629101 461.173416,177.930202 C512.216417,198.911955 541.942994,227.985236 541.942994,255.99437 C541.942994,284.003505 512.296705,313.076786 461.153344,334.058539"));
+        ctx.restore();
       } else if (type === "vue") {
+        // SVG size is 256x221. Scale to fit 150x130 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 65);
+        ctx.scale(150 / 256, 150 / 256);
         ctx.fillStyle = "#41B883";
-        ctx.beginPath();
-        ctx.moveTo(128 - 60, 80); ctx.lineTo(128, 180); ctx.lineTo(128 + 60, 80);
-        ctx.lineTo(128 + 30, 80); ctx.lineTo(128, 130); ctx.lineTo(128 - 30, 80);
-        ctx.closePath(); ctx.fill();
+        ctx.fill(new Path2D("M204.8 0H256L128 220.8L0 0h97.92L128 51.2L157.44 0h47.36Z"));
+        ctx.fill(new Path2D("m0 0 128 220.8L256 0h-51.2L128 132.48 50.56 0H0Z"));
         ctx.fillStyle = "#35495E";
-        ctx.beginPath();
-        ctx.moveTo(128 - 30, 80); ctx.lineTo(128, 130); ctx.lineTo(128 + 30, 80);
-        ctx.lineTo(128 + 10, 80); ctx.lineTo(128, 95); ctx.lineTo(128 - 10, 80);
-        ctx.closePath(); ctx.fill();
+        ctx.fill(new Path2D("M50.56 0 128 133.12 204.8 0h-47.36L128 51.2L97.92 0H50.56Z"));
+        ctx.restore();
       } else if (type === "typescript") {
-        ctx.fillStyle = "#3178C6"; ctx.fillRect(50, 50, 156, 156);
-        ctx.fillStyle = "#ffffff"; ctx.font = "bold 80px sans-serif";
-        ctx.textAlign = "right"; ctx.textBaseline = "bottom";
-        ctx.fillText("TS", 190, 190);
+        // SVG size is 256x256. Scale to fit 150x150 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 75);
+        ctx.scale(150 / 256, 150 / 256);
+        ctx.fillStyle = "#3178C6";
+        ctx.fill(new Path2D("M20 0h216c11.046 0 20 8.954 20 20v216c0 11.046-8.954 20-20 20H20c-11.046 0-20-8.954-20-20V20C0 8.954 8.954 0 20 0Z"));
+        ctx.fillStyle = "#ffffff";
+        ctx.fill(new Path2D("M150.518 200.475v27.62c4.492 2.302 9.805 4.028 15.938 5.179 6.133 1.151 12.597 1.726 19.393 1.726 6.622 0 12.914-.633 18.874-1.899 5.96-1.266 11.187-3.352 15.678-6.257 4.492-2.906 8.048-6.704 10.669-11.394 2.62-4.689 3.93-10.486 3.93-17.391 0-5.006-.749-9.394-2.246-13.163a30.748 30.748 0 0 0-6.479-10.055c-2.821-2.935-6.205-5.567-10.149-7.898-3.945-2.33-8.394-4.531-13.347-6.602-3.628-1.497-6.881-2.949-9.761-4.359-2.879-1.41-5.327-2.848-7.342-4.316-2.016-1.467-3.571-3.021-4.665-4.661-1.094-1.64-1.641-3.495-1.641-5.567 0-1.899.489-3.61 1.468-5.135s2.362-2.834 4.147-3.927c1.785-1.094 3.973-1.942 6.565-2.547 2.591-.604 5.471-.906 8.638-.906 2.304 0 4.737.173 7.299.518 2.563.345 5.14.877 7.732 1.597a53.669 53.669 0 0 1 7.558 2.719 41.7 41.7 0 0 1 6.781 3.797v-25.807c-4.204-1.611-8.797-2.805-13.778-3.582-4.981-.777-10.697-1.165-17.147-1.165-6.565 0-12.784.705-18.658 2.115-5.874 1.409-11.043 3.61-15.506 6.602-4.463 2.993-7.99 6.805-10.582 11.437-2.591 4.632-3.887 10.17-3.887 16.615 0 8.228 2.375 15.248 7.127 21.06 4.751 5.811 11.963 10.731 21.638 14.759a291.458 291.458 0 0 1 10.625 4.575c3.283 1.496 6.119 3.049 8.509 4.66 2.39 1.611 4.276 3.366 5.658 5.265 1.382 1.899 2.073 4.057 2.073 6.474a9.901 9.901 0 0 1-1.296 4.963c-.863 1.524-2.174 2.848-3.93 3.97-1.756 1.122-3.945 1.999-6.565 2.632-2.62.633-5.687.95-9.2.95-5.989 0-11.92-1.05-17.794-3.151-5.875-2.1-11.317-5.25-16.327-9.451Zm-46.036-68.733H140V109H41v22.742h35.345V233h28.137V131.742Z"));
+        ctx.restore();
       } else if (type === "javascript") {
-        ctx.fillStyle = "#F7DF1E"; ctx.fillRect(50, 50, 156, 156);
-        ctx.fillStyle = "#000000"; ctx.font = "bold 80px sans-serif";
-        ctx.textAlign = "right"; ctx.textBaseline = "bottom";
-        ctx.fillText("JS", 190, 190);
+        // SVG size is 1052x1052. Scale to fit 150x150 area centered at (128, 128)
+        ctx.save();
+        ctx.translate(128 - 75, 128 - 75);
+        ctx.scale(150 / 1052, 150 / 1052);
+        ctx.fillStyle = "#f0db4f";
+        ctx.fillRect(0, 0, 1052, 1052);
+        ctx.fillStyle = "#323330";
+        ctx.fill(new Path2D("M965.9 801.1c-7.7-48-39-88.3-131.7-125.9-32.2-14.8-68.1-25.399-78.8-49.8-3.8-14.2-4.3-22.2-1.9-30.8 6.9-27.9 40.2-36.6 66.6-28.6 17 5.7 33.1 18.801 42.8 39.7 45.4-29.399 45.3-29.2 77-49.399-11.6-18-17.8-26.301-25.4-34-27.3-30.5-64.5-46.2-124-45-10.3 1.3-20.699 2.699-31 4-29.699 7.5-58 23.1-74.6 44-49.8 56.5-35.6 155.399 25 196.1 59.7 44.8 147.4 55 158.6 96.9 10.9 51.3-37.699 67.899-86 62-35.6-7.4-55.399-25.5-76.8-58.4-39.399 22.8-39.399 22.8-79.899 46.1 9.6 21 19.699 30.5 35.8 48.7 76.2 77.3 266.899 73.5 301.1-43.5 1.399-4.001 10.6-30.801 3.199-72.101zm-394-317.6h-98.4c0 85-.399 169.4-.399 254.4 0 54.1 2.8 103.7-6 118.9-14.4 29.899-51.7 26.2-68.7 20.399-17.3-8.5-26.1-20.6-36.3-37.699-2.8-4.9-4.9-8.7-5.601-9-26.699 16.3-53.3 32.699-80 49 13.301 27.3 32.9 51 58 66.399 37.5 22.5 87.9 29.4 140.601 17.3 34.3-10 63.899-30.699 79.399-62.199 22.4-41.3 17.6-91.3 17.4-146.6.5-90.2 0-180.4 0-270.9z"));
+        ctx.restore();
       } else if (type === "tailwind") {
         ctx.fillStyle = "#00f0ff";
         ctx.beginPath();
@@ -92,51 +186,158 @@ export default function FloatingIcons({ category }: FloatingIconsProps) {
         ctx.bezierCurveTo(178, 201, 148, 201, 128, 171); ctx.bezierCurveTo(98, 171, 88, 141, 58, 141);
         ctx.bezierCurveTo(78, 111, 108, 111, 128, 141); ctx.fill();
       } else if (type === "php") {
-        ctx.fillStyle = "#777BB4"; ctx.beginPath(); ctx.ellipse(128, 128, 75, 45, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.font = "bold 46px sans-serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("php", 128, 128);
-      } else if (type === "codeigniter") {
-        ctx.fillStyle = "#EE4326";
+        ctx.fillStyle = "#777BB4";
         ctx.beginPath();
-        ctx.moveTo(128, 60); ctx.bezierCurveTo(165, 105, 185, 155, 128, 195);
-        ctx.bezierCurveTo(71, 155, 91, 105, 128, 60); ctx.fill();
-      } else if (type === "python") {
-        ctx.fillStyle = "#306998"; ctx.beginPath();
-        ctx.arc(110, 110, 32, Math.PI, Math.PI * 1.5); ctx.lineTo(146, 78);
-        ctx.arc(146, 110, 32, Math.PI * 1.5, 0); ctx.lineTo(178, 128); ctx.lineTo(152, 128);
-        ctx.arc(128, 128, 24, 0, Math.PI * 0.5); ctx.lineTo(95, 142);
-        ctx.arc(95, 110, 15, Math.PI * 0.5, Math.PI); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(115, 92, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.ellipse(128, 128, 75, 45, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-        ctx.fillStyle = "#ffd43b"; ctx.beginPath();
-        ctx.arc(146, 146, 32, 0, Math.PI * 0.5); ctx.lineTo(110, 178);
-        ctx.arc(110, 146, 32, Math.PI * 0.5, Math.PI); ctx.lineTo(78, 128); ctx.lineTo(104, 128);
-        ctx.arc(128, 128, 24, Math.PI, Math.PI * 1.5); ctx.lineTo(161, 114);
-        ctx.arc(161, 146, 15, Math.PI * 1.5, 0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(141, 164, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.save();
+        ctx.translate(128 - 70, 128 - 35 + 1.4);
+        ctx.scale(1.4, 1.4);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill(new Path2D("M7.579 10.123h14.204c4.169.035 7.19 1.237 9.063 3.604 1.873 2.367 2.491 5.6 1.855 9.699-.247 1.873-.795 3.71-1.643 5.512a16.385 16.385 0 01-3.392 4.876c-1.767 1.837-3.657 3.003-5.671 3.498a26.11 26.11 0 01-6.254.742h-6.36l-2.014 10.07H0l7.579-38.001m6.201 6.042l-3.18 15.9c.212.035.424.053.636.053h.742c3.392.035 6.219-.3 8.48-1.007 2.261-.742 3.781-3.321 4.558-7.738.636-3.71 0-5.848-1.908-6.413-1.873-.565-4.222-.83-7.049-.795-.424.035-.83.053-1.219.053h-1.113l.053-.053M41.093 0h7.314L46.34 10.123h6.572c3.604.071 6.289.813 8.056 2.226 1.802 1.413 2.332 4.099 1.59 8.056l-3.551 17.649h-7.42L54.979 21.2c.353-1.767.247-3.021-.318-3.763s-1.784-1.113-3.657-1.113l-5.883-.053-4.346 21.783h-7.314L41.093 0M70.412 10.123h14.204c4.169.035 7.19 1.237 9.063 3.604 1.873 2.367 2.491 5.6 1.855 9.699-.247 1.873-.795 3.71-1.643 5.512a16.385 16.385 0 01-3.392 4.876c-1.767 1.837-3.657 3.003-5.671 3.498a26.11 26.11 0 01-6.254.742h-6.36L70.2 48.124h-7.367l7.579-38.001m6.201 6.042l-3.18 15.9c.212.035.424.053.636.053h.742c3.392.035 6.219-.3 8.48-1.007 2.261-.742 3.781-3.321 4.558-7.738.636-3.71 0-5.848-1.908-6.413-1.873-.565-4.222-.83-7.049-.795-.424.035-.83.053-1.219.053H76.56l.053-.053M7.579 10.123"));
+        ctx.restore();
+      } else if (type === "codeigniter") {
+        ctx.save();
+        ctx.translate(128 - 70, 128 - 70);
+        ctx.scale(140 / 128, 140 / 128);
+        ctx.fillStyle = "#EE4323";
+        ctx.fill(new Path2D("M89.708 48.868l-.758-.414c.399.964.529 1.786.515 2.521a8.627 8.627 0 00.248-1.847 8.22 8.22 0 01-.273 2.231l.025-.385a8.52 8.52 0 01-1.074 2.558l.235-.25c-2.88 4.819-10.737 5.872-14.612.895-6.22-7.99.128-16.604 1.017-25.065 1.111-10.604-5.538-20.899-13.783-27.06 4.541 7.346-1.442 17.066-6.229 22.498-4.642 5.269-10.286 9.667-15.41 14.451-5.503 5.143-10.797 10.555-15.319 16.588-9.049 12.074-14.59 27.26-10.518 42.325 4.068 15.056 17.108 24.639 31.834 28.027-7.429-3.212-14.381-11.373-14.397-19.723-.019-9.106 5.75-16.835 12.927-21.914-.863 3.259-1.334 6.24.803 9.155 1.988 2.711 5.468 4.027 8.753 3.312 7.679-1.679 8.03-10.12 3.479-15.038-4.501-4.868-8.855-10.371-7.143-17.433.858-3.54 3.032-6.854 5.787-9.226-2.118 5.563 3.897 11.049 7.859 13.779 6.876 4.741 14.416 8.325 20.738 13.881 6.648 5.84 11.559 13.736 10.567 22.896-1.076 9.927-8.964 16.832-17.811 20.317 18.696-4.128 38.018-18.639 38.411-39.376.329-17.058-11.373-30.187-25.871-37.703z"));
+        ctx.restore();
+      } else if (type === "python") {
+        ctx.save();
+        ctx.translate(-12, -12);
+        ctx.scale(4.375, 4.375);
+
+        // Gradient a (top/blue part)
+        const gA = ctx.createLinearGradient(19.075, 18.782, 34.898, 34.658);
+        gA.addColorStop(0, "#387EB8");
+        gA.addColorStop(1, "#366994");
+        ctx.fillStyle = gA;
+        ctx.fill(new Path2D("M31.885 16c-8.124 0-7.617 3.523-7.617 3.523l.01 3.65h7.752v1.095H21.197S16 23.678 16 31.876c0 8.196 4.537 7.906 4.537 7.906h2.708v-3.804s-.146-4.537 4.465-4.537h7.688s4.32.07 4.32-4.175v-7.019S40.374 16 31.885 16zm-4.275 2.454a1.394 1.394 0 1 1 0 2.79 1.393 1.393 0 0 1-1.395-1.395c0-.771.624-1.395 1.395-1.395z"));
+
+        // Gradient b (bottom/yellow part)
+        const gB = ctx.createLinearGradient(28.809, 28.882, 45.803, 45.163);
+        gB.addColorStop(0, "#FFE052");
+        gB.addColorStop(1, "#FFC331");
+        ctx.fillStyle = gB;
+        ctx.fill(new Path2D("M32.115 47.833c8.124 0 7.617-3.523 7.617-3.523l-.01-3.65H31.97v-1.095h10.832S48 40.155 48 31.958c0-8.197-4.537-7.906-4.537-7.906h-2.708v3.803s.146 4.537-4.465 4.537h-7.688s-4.32-.07-4.32 4.175v7.019s-.656 4.247 7.833 4.247zm4.275-2.454a1.393 1.393 0 0 1-1.395-1.395 1.394 1.394 0 1 1 1.395 1.395z"));
+
+        ctx.restore();
       } else if (type === "colab") {
-        ctx.strokeStyle = "#F9AB00"; ctx.lineWidth = 10; ctx.beginPath();
-        ctx.arc(105, 128, 25, Math.PI * 0.5, Math.PI * 1.5); ctx.stroke();
-        ctx.strokeStyle = "#E37400"; ctx.lineWidth = 10; ctx.beginPath();
-        ctx.arc(151, 128, 25, Math.PI * 1.5, Math.PI * 0.5); ctx.stroke();
+        ctx.save();
+        ctx.translate(128 - 70, 128 - 70);
+        ctx.scale(140 / 24, 140 / 24);
+
+        ctx.fillStyle = "#E8710A";
+        ctx.fill(new Path2D("M4.54 9.46 2.19 7.1a6.93 6.93 0 0 0 0 9.79l2.36-2.36a3.59 3.59 0 0 1-.01-5.07Z"));
+
+        ctx.fillStyle = "#F9AB00";
+        ctx.fill(new Path2D("m2.19 7.1 2.35 2.36a3.59 3.59 0 0 1 5.08 0l1.71-2.93-.1-.08a6.93 6.93 0 0 0-9.04.65ZM11.34 17.46l-1.72-2.92a3.59 3.59 0 0 1-5.08 0L2.19 16.9a6.93 6.93 0 0 0 9 .65l.11-.09M12 7.1a6.93 6.93 0 0 0 0 9.79l2.36-2.36a3.59 3.59 0 1 1 5.08-5.08l2.37-2.35a6.93 6.93 0 0 0-9.81 0Z"));
+
+        ctx.fillStyle = "#E8710A";
+        ctx.fill(new Path2D("m21.81 7.1-2.35 2.36a3.59 3.59 0 0 1-5.08 5.08L12 16.9a6.93 6.93 0 0 0 9.81-9.8Z"));
+
+        ctx.restore();
       } else if (type === "scikit") {
-        ctx.fillStyle = "#3498DB"; ctx.beginPath(); ctx.arc(105, 128, 32, Math.PI * 0.5, Math.PI * 1.5); ctx.fill();
-        ctx.fillStyle = "#F1C40F"; ctx.beginPath(); ctx.arc(151, 128, 32, Math.PI * 1.5, Math.PI * 0.5); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.font = "bold 32px sans-serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("sk", 128, 128);
+        ctx.save();
+        ctx.translate(128 - 70, 128 - 70);
+        ctx.scale(140 / 128, 140 / 128);
+
+        ctx.fillStyle = "#f89939";
+        ctx.fill(new Path2D("M98.18 88.13c15.63-15.62 18.23-38.36 5.8-50.78-12.43-12.42-35.17-9.82-50.8 5.8-15.63 15.62-11.11 45.48-5.8 50.78 4.29 4.29 35.17 9.82 50.8-5.8Z"));
+
+        ctx.fillStyle = "#3499cd";
+        ctx.fill(new Path2D("M34.04 65.56c-9.07-9.06-22.27-10.57-29.48-3.37-7.21 7.21-5.7 20.4 3.37 29.46 9.07 9.07 26.4 6.44 29.48 3.37 2.49-2.49 5.71-20.4-3.37-29.46Z"));
+
+        ctx.fillStyle = "#010101";
+        ctx.fill(new Path2D("M123.82 85.68c-.58 0-.87-.35-.87-1.06 0-.53.35-1.69 1.04-3.46 1.01-2.59 1.52-4.45 1.52-5.58 0-.68-.2-1.25-.6-1.7-.4-.45-.9-.68-1.5-.68-.88 0-1.89.41-3.03 1.24-1.14.83-2.67 2.32-4.6 4.48.28-1.4.88-3.32 1.78-5.76l-4.31.83c-.98 2.12-1.69 4.03-2.13 5.73-.22.83-.38 1.69-.49 2.56-1.35 1.31-2.23 2.1-2.61 2.39-.39.29-.8.43-1.22.43-.39 0-.7-.15-.93-.44-.23-.29-.34-.69-.34-1.18 0-.53.1-1.14.3-1.83s.64-1.99 1.33-3.9l1.64-4.52-1.61.07c-1.46 2.78-3.17 4.28-5.13 4.49.53-1.38.8-2.44.8-3.18 0-.94-.46-1.41-1.38-1.41-1.09 0-1.94.51-2.55 1.54-.62 1.03-.93 2-.93 2.91s.51 1.55 1.52 2c-.66.97-1.4 1.88-2.2 2.74-.95.94-1.69 1.66-2.23 2.13-.55.49-1.06.73-1.52.73-.72 0-1.08-.51-1.08-1.52s.4-2.75 1.2-5.35l1.56-5.18h-.99l-3.61 2c-.59-1.35-1.62-2.03-3.09-2.03-1.17 0-2.51.5-4.03 1.49-1.52.99-2.77 2.28-3.74 3.89-.75 1.24-1.21 2.54-1.38 3.88-1.36 1.36-2.38 2.24-3.06 2.65-.71.42-1.45.63-2.23.63-1.99 0-3.22-1.15-3.69-3.45 5.19-1.52 7.78-3.5 7.78-5.94 0-.92-.33-1.66-.99-2.23-.66-.57-1.54-.85-2.63-.85-2.11 0-4.03 1.01-5.76 3.03-1.57 1.83-2.42 3.86-2.57 6.09-1.43 1.41-2.51 2.34-3.21 2.79-.72.46-1.4.69-2.03.69s-1.13-.3-1.5-.9c-.38-.6-.57-1.41-.57-2.44 0-.46.05-1.3.14-2.53 2.36-2.56 4.09-4.96 5.2-7.21 1.11-2.25 1.66-4.58 1.66-6.98 0-.85-.11-1.52-.33-2.02-.22-.5-.5-.75-.84-.75-.07 0-.18.02-.32.07l-4.49 1.66c-1.53 2.92-2.84 6.11-3.91 9.58-1.07 3.46-1.61 6.43-1.61 8.9 0 1.65.38 2.96 1.16 3.94.77.98 1.79 1.47 3.05 1.47 1.1 0 2.25-.35 3.46-1.05 1.21-.7 2.61-1.79 4.22-3.26s0-.02 0-.02c.19 1.11.65 2.04 1.37 2.8.99 1.02 2.28 1.54 3.88 1.54 1.44 0 2.75-.35 3.94-1.05 1.15-.67 2.44-1.72 3.88-3.11.12 1.04.46 1.94 1.03 2.71.73.97 1.61 1.46 2.64 1.46s2.09-.4 3.09-1.2c1-.8 2.08-2.05 3.26-3.73-.11 3.29.77 4.93 2.63 4.93.74 0 1.52-.27 2.33-.81s2.16-1.71 4.05-3.5c1.64-1.62 2.84-3.14 3.61-4.56 1.04-.18 1.99-.49 2.86-.94-1.78 2.79-2.67 5.02-2.67 6.68 0 .9.25 1.65.74 2.25.49.6 1.1.91 1.82.91 1.57 0 3.8-1.41 6.68-4.2 0 .22-.02.43-.02.65 0 .78.07 1.96.19 3.55l3.91-.92c0-1.06.02-1.9.05-2.53.06-.84.18-1.76.35-2.76.11-.59.38-1.15.81-1.68l.99-1.15c.36-.42.71-.8 1.02-1.13.37-.39.7-.72.99-.99.33-.29.62-.53.87-.69.27-.16.49-.25.65-.25.29 0 .44.19.44.57s-.28 1.26-.83 2.65c-1.04 2.59-1.56 4.52-1.56 5.78 0 .93.24 1.67.73 2.23.48.55 1.12.83 1.91.83 1.94 0 4.28-1.44 7-4.31V82.3c-1.93 2.27-3.32 3.41-4.18 3.41Zm-65.26-8.29c.8-3.91 1.62-6.94 2.45-9.11.83-2.17 1.47-3.26 1.9-3.26.2 0 .37.13.5.4.13.26.19.62.19 1.05 0 1.49-.46 3.26-1.4 5.33-.93 2.06-2.15 3.93-3.64 5.59Zm11.79-.98c.71-1.19 1.45-1.78 2.23-1.78.82 0 1.24.57 1.24 1.7 0 2.29-1.51 3.85-4.53 4.7 0-1.9.35-3.44 1.06-4.62Zm17.48 5.85c-1.04 2.01-2.16 3.01-3.33 3.01-.48 0-.88-.2-1.19-.59-.31-.39-.47-.91-.47-1.55 0-1.68.53-3.53 1.58-5.53 1.05-2 2.17-3 3.35-3 .49 0 .89.18 1.18.56.29.37.44.89.44 1.55 0 1.7-.52 3.55-1.56 5.56Zm4.47 1.44c.15.21.22.48.22.8s-.09.61-.27.88-.44.49-.79.64c-.34.15-.73.23-1.16.23-.72 0-1.26-.15-1.64-.45s-.62-.74-.72-1.33l.93-.15c.05.37.2.66.43.85.24.2.57.3 1 .3s.75-.09.96-.26c.21-.17.31-.38.31-.62 0-.21-.09-.38-.28-.5-.13-.08-.45-.19-.96-.32-.69-.17-1.16-.32-1.43-.45s-.47-.3-.6-.53-.21-.47-.21-.74c0-.25.06-.47.17-.68.11-.21.27-.38.46-.52.15-.11.34-.2.59-.27.25-.07.52-.11.81-.11.43 0 .81.06 1.14.19.33.12.57.29.73.51.16.21.26.5.32.86l-.92.12c-.04-.28-.16-.51-.36-.67-.2-.16-.48-.24-.85-.24-.43 0-.74.07-.92.21-.18.14-.28.31-.28.5 0 .12.04.23.11.33.08.1.2.18.36.25.09.03.37.11.83.24.66.18 1.12.32 1.39.43.26.11.47.28.62.49Zm4.47 1.44c-.25.23-.55.34-.92.34-.46 0-.83-.17-1.11-.5s-.43-.88-.43-1.62.15-1.27.44-1.6.68-.51 1.15-.51c.31 0 .58.09.8.28.22.19.37.47.46.84l.91-.14c-.11-.56-.35-.99-.73-1.29-.38-.3-.87-.45-1.47-.45-.48 0-.91.11-1.32.34-.4.22-.71.56-.9 1.01-.2.45-.3.97-.3 1.57 0 .92.23 1.63.69 2.12.46.49 1.07.74 1.82.74.6 0 1.11-.18 1.53-.54.41-.36.67-.86.77-1.49l-.92-.12c-.07.47-.22.81-.47 1.04Zm2.19.98h.94v-5.52h-.94v5.52Zm0-6.55h.94v-1.08h-.94v1.08Zm6.73 1.02h-1.21l-2.22 2.25v-4.35h-.94v7.62h.94V65.1l.66-.63 1.83 2.82h1.16l-2.33-3.47 2.11-2.05Zm.96-1.02h.94v-1.08h-.94v1.08Zm0 6.55h.94v-5.52h-.94v5.52Zm4.41-.84c-.17.02-.31.04-.41.04-.14 0-.25-.02-.32-.07s-.13-.11-.16-.18c-.03-.08-.05-.25-.05-.51v-3.23h.94v-.73h-.94v-1.93l-.93.56v1.37h-.69v.73h.69v3.18c0 .56.04.93.11 1.1.08.18.21.32.39.42.19.11.45.16.79.16.21 0 .44-.03.71-.08l-.14-.83Z"));
+        ctx.restore();
       } else if (type === "figma") {
-        ctx.fillStyle = "#F24E1E"; ctx.beginPath(); ctx.arc(105, 92, 20, Math.PI * 0.5, Math.PI * 1.5); ctx.rect(105, 72, 20, 40); ctx.fill();
-        ctx.fillStyle = "#FF7262"; ctx.beginPath(); ctx.arc(151, 92, 20, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#A259FF"; ctx.beginPath(); ctx.arc(105, 132, 20, Math.PI * 0.5, Math.PI * 1.5); ctx.rect(105, 112, 20, 40); ctx.fill();
-        ctx.fillStyle = "#1ABC9C"; ctx.beginPath(); ctx.arc(151, 132, 20, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#0ACF83"; ctx.beginPath(); ctx.arc(105, 172, 20, 0, Math.PI * 2); ctx.fill();
+        // Precise figma circles with zero spacing gaps
+        const rx1 = 106, rx2 = 150;
+        const ry1 = 84, ry2 = 128, ry3 = 172;
+        const r = 22;
+
+        // Row 1 left (orange-red)
+        ctx.fillStyle = "#F24E1E";
+        ctx.beginPath();
+        ctx.arc(rx1, ry1, r, Math.PI * 0.5, Math.PI * 1.5);
+        ctx.rect(rx1, ry1 - r, r, r * 2);
+        ctx.fill();
+
+        // Row 1 right (orange)
+        ctx.fillStyle = "#FF7262";
+        ctx.beginPath();
+        ctx.arc(rx2, ry1, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Row 2 left (purple)
+        ctx.fillStyle = "#A259FF";
+        ctx.beginPath();
+        ctx.arc(rx1, ry2, r, Math.PI * 0.5, Math.PI * 1.5);
+        ctx.rect(rx1, ry2 - r, r, r * 2);
+        ctx.fill();
+
+        // Row 2 right (blue)
+        ctx.fillStyle = "#1ABC9C";
+        ctx.beginPath();
+        ctx.arc(rx2, ry2, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Row 3 left (green)
+        ctx.fillStyle = "#0ACF83";
+        ctx.beginPath();
+        ctx.arc(rx1, ry3, r, 0, Math.PI); // Bottom semicircle
+        ctx.arc(rx1, ry3, r, Math.PI, Math.PI * 1.5); // Top-left quadrant
+        ctx.lineTo(rx1 + r, ry3 - r); // Top-right flat top
+        ctx.lineTo(rx1 + r, ry3); // Right flat side
+        ctx.closePath();
+        ctx.fill();
       } else if (type === "canva") {
-        ctx.fillStyle = "#00C4CC"; ctx.beginPath(); ctx.arc(128, 128, 80, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.font = "bold 96px serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("C", 128, 122);
+        // Beautiful diagonal gradient circle background
+        const gradient = ctx.createLinearGradient(48, 48, 208, 208);
+        gradient.addColorStop(0, "#00C4CC");
+        gradient.addColorStop(1, "#7D2AE8");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(128, 128, 82, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "italic bold 90px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("C", 128, 122);
       } else if (type === "vscode") {
-        ctx.fillStyle = "#007ACC"; ctx.font = "bold 72px sans-serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("VS", 128, 128);
+        // Authentic VS Code geometric ribbon
+        ctx.fillStyle = "#007ACC";
+        ctx.beginPath();
+        ctx.moveTo(70, 110);
+        ctx.lineTo(150, 50);
+        ctx.lineTo(190, 75);
+        ctx.lineTo(190, 181);
+        ctx.lineTo(150, 206);
+        ctx.lineTo(70, 146);
+        ctx.lineTo(110, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#1F9CF0";
+        ctx.beginPath();
+        ctx.moveTo(190, 75);
+        ctx.lineTo(150, 128);
+        ctx.lineTo(190, 181);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#005A9E";
+        ctx.beginPath();
+        ctx.moveTo(70, 110);
+        ctx.lineTo(110, 128);
+        ctx.lineTo(70, 146);
+        ctx.closePath();
+        ctx.fill();
       } else if (type === "antigravity") {
         ctx.strokeStyle = "#39FF14"; ctx.lineWidth = 8;
         ctx.beginPath(); ctx.moveTo(128, 65); ctx.lineTo(65, 140); ctx.lineTo(191, 140); ctx.closePath(); ctx.stroke();
@@ -153,6 +354,8 @@ export default function FloatingIcons({ category }: FloatingIconsProps) {
 
   useEffect(() => {
     setTextures({
+      html: createLogoTexture("html"),
+      css: createLogoTexture("css"),
       react: createLogoTexture("react"),
       nextjs: createLogoTexture("nextjs"),
       vue: createLogoTexture("vue"),
@@ -174,23 +377,57 @@ export default function FloatingIcons({ category }: FloatingIconsProps) {
   const list = SKILLS_BY_CATEGORY[category] || [];
 
   const layout = useMemo(() => {
-    return { start: 120, step: 160 };
-  }, []);
+    return { start: start ?? 120, step: step ?? 160 };
+  }, [start, step]);
 
-  useFrame((state) => {
+  const prevProgress = useRef(0);
+  const scrollSpeed = useRef(0);
+  const rotationY = useRef(0);
+
+  useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
 
-    // Gently float each element independently
+    // Calculate scroll speed dynamically
+    if (progress) {
+      const current = progress.get();
+      const diff = current - prevProgress.current;
+      prevProgress.current = current;
+      // Smoothly interpolate the speed
+      scrollSpeed.current = THREE.MathUtils.lerp(scrollSpeed.current, diff / (delta || 0.016), 0.15);
+    }
+
+    // Accumulate speed into rotation
+    rotationY.current += scrollSpeed.current * 1.2 * delta;
+
+    // Gently float each element independently, adapting to hover states
     iconRefs.current.forEach((ref, index) => {
       if (ref) {
-        ref.position.y = Math.sin(time * 1.5 + index * 0.5) * 0.12;
+        const isHovered = hoveredIndex === index;
+
+        // Smoothly interpolate scale on hover
+        const targetScale = isHovered ? scale * 1.25 : scale;
+        ref.scale.x = THREE.MathUtils.lerp(ref.scale.x, targetScale, 0.15);
+        ref.scale.y = THREE.MathUtils.lerp(ref.scale.y, targetScale, 0.15);
+        ref.scale.z = THREE.MathUtils.lerp(ref.scale.z, targetScale, 0.15);
+
+        // Floating height: faster and higher float when hovered
+        const floatFreq = isHovered ? 2.5 : 1.5;
+        const floatAmp = isHovered ? 0.18 : 0.12;
+        ref.position.y = Math.sin(time * floatFreq + index * 0.5) * floatAmp;
+
+        // Dynamic 3D rotation: base rotation + scroll spin + phase offset + extra speed if hovered
+        const spinSpeed = isHovered ? time * 1.5 : time * 0.15;
+        ref.rotation.y = spinSpeed + rotationY.current + index * 0.1;
+
+        // Dynamic 3D tilt: inertia tilt based on scroll speed
+        ref.rotation.z = THREE.MathUtils.lerp(ref.rotation.z, -scrollSpeed.current * 0.18, 0.1);
       }
     });
   });
 
-  // Scale of 3D coin badge inside the row canvas (enlarged by 20%)
-  const scale = 1.8;
-  const pixelsPerUnit = size.width / viewport.width;
+  // Scale of 3D coin badge inside the row canvas (enlarged for better proportion) - uniform across all resolutions
+  const scale = 2.2;
+  const pixelsPerUnit = size.width > 0 ? size.width / viewport.width : 1;
 
   return (
     <group ref={groupRef}>
@@ -212,13 +449,30 @@ export default function FloatingIcons({ category }: FloatingIconsProps) {
             {/* Cylinder acts as coin badge oriented facing the camera */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <cylinderGeometry args={[0.44, 0.44, 0.06, 32]} />
-              <meshStandardMaterial color="#0b1a30" roughness={0.2} metalness={0.8} />
+              <meshStandardMaterial color="#112240" roughness={0.4} metalness={0.5} />
             </mesh>
-            {/* Logo plane rendered directly on the front flat face */}
+            {/* Front Logo plane rendered directly on the front flat face */}
             {textures[type] && (
               <mesh position={[0, 0, 0.031]}>
                 <planeGeometry args={[0.82, 0.82]} />
-                <meshBasicMaterial map={textures[type]} transparent side={THREE.DoubleSide} />
+                <meshStandardMaterial 
+                  map={textures[type]} 
+                  transparent 
+                  roughness={0.6} 
+                  metalness={0.15} 
+                />
+              </mesh>
+            )}
+            {/* Back Logo plane rendered on the back flat face (rotated 180 around Y) */}
+            {textures[type] && (
+              <mesh position={[0, 0, -0.031]} rotation={[0, Math.PI, 0]}>
+                <planeGeometry args={[0.82, 0.82]} />
+                <meshStandardMaterial 
+                  map={textures[type]} 
+                  transparent 
+                  roughness={0.6} 
+                  metalness={0.15} 
+                />
               </mesh>
             )}
           </group>
