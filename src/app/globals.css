@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-dark: #030f26;
+  --color-cyber-light: #0a1b3a;
+  --color-electric-cyan: #00f0ff;
+  --color-neon-purple: #8a2be2;
+  --color-cyber-gray: #0b1a30;
+  
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+:root {
+  --background: #030f26;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #030f26;
+}
+::-webkit-scrollbar-thumb {
+  background: #00f0ff;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8a2be2;
+}
+
+/* Cyber Grid Utilities */
+.cyber-grid-bg {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+}
+
+.cyber-border {
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.05);
+}
+
+.cyber-border-purple {
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.05);
+}
+
+.neon-text-cyan {
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.neon-text-purple {
+  text-shadow: 0 0 8px rgba(138, 43, 226, 0.6), 0 0 20px rgba(138, 43, 226, 0.3);
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+}
+
+.glassmorphism {
+  background: rgba(3, 15, 38, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+}
+
+/* Custom Corner Accents */
+.cyber-corner-tr::before,
+.cyber-corner-tr::after {
+  content: '';
+  position: absolute;
+  background: #00f0ff;
+}
+.cyber-corner-tr::before {
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 2px;
+}
+.cyber-corner-tr::after {
+  top: -1px;
+  right: -1px;
+  width: 2px;
+  height: 10px;
+}
+
+.cyber-corner-bl::before,
+.cyber-corner-bl::after {
+  content: '';
+  position: absolute;
+  background: #8a2be2;
+}
+.cyber-corner-bl::before {
+  bottom: -1px;
+  left: -1px;
+  width: 10px;
+  height: 2px;
+}
+.cyber-corner-bl::after {
+  bottom: -1px;
+  left: -1px;
+  width: 2px;
+  height: 10px;
+}
+
+/* Marquee Scrolling Animation */
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
